@@ -26,27 +26,19 @@ namespace Cartas
 
             // elección gamemode
             int n = selectPlayers();
-            if (n == 1) {
+            if (n == 1) 
                 game(twoPlayers);
-            } 
             else if (n == 2)
-            {
                 game(threePlayers);
-            }
             else if (n == 3)
-            {
                 game(fourPlayers);
-            }
             else if (n == 4)
-            {
                 game(fivePlayers);
-            }
+            
 
 
 
-            Console.WriteLine("");
-            Console.WriteLine("Pulse cualquier tecla para salir...");
-            Console.ReadKey();
+            
 
 
         }
@@ -100,6 +92,7 @@ namespace Cartas
             Console.WriteLine("*********************************************");
             Console.WriteLine("HA GANADO EL JUGADOR "+players[0].numPlayer);
             Console.WriteLine("*********************************************");
+            Console.ReadKey();
         }
 
         static void checkRoundWinner(List<Carta> cards, int mainSuit)
@@ -229,7 +222,7 @@ namespace Cartas
             Console.WriteLine("Pulse 2 para jugar 3 Jugadores");
             Console.WriteLine("Pulse 3 para jugar 4 Jugadores");
             Console.WriteLine("Pulse 4 para jugar 5 Jugadores");
-            Console.WriteLine("Pulse 0 para salir");
+            Console.WriteLine("Pulse cualquier otra tecla para salir...");
         }
     }
     
