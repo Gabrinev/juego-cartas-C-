@@ -8,11 +8,13 @@ namespace Cartas
 {
     class Program
     {
-        static Player p1 = new Player(1);
-        static Player p2 = new Player(2);
-        static Player p3 = new Player(3);
-        static Player p4 = new Player(4);
-        static Player p5 = new Player(5);
+        static public Player p1 = new Player(1);
+        static public Player p2 = new Player(2);
+        static public Player p3 = new Player(3);
+        static public Player p4 = new Player(4);
+        static public Player p5 = new Player(5);
+        static public String[] palos = { "Oros", "Copas", "Espadas", "Bastos" };
+        static public Baraja baraja = new Baraja();
 
 
         static void Main(string[] args)
@@ -22,18 +24,18 @@ namespace Cartas
             List<Player> fourPlayers = new List<Player>() { p1, p2, p3, p4 };
             List<Player> fivePlayers = new List<Player>() { p1, p2, p3, p4, p5 };
             int n = selectPlayers();
-            if (n == 2) {
+            if (n == 1) {
                 game(twoPlayers);
             } 
-            else if (n == 3)
+            else if (n == 2)
             {
                 game(threePlayers);
             }
-            else if (n == 4)
+            else if (n == 3)
             {
                 game(fourPlayers);
             }
-            else if (n == 5)
+            else if (n == 4)
             {
                 game(fivePlayers);
             }
@@ -49,105 +51,136 @@ namespace Cartas
         
         static void game(List<Player> players)
         {
-            int round = 0;
-            Boolean ganador = false;
+            Random r = new Random();
+            int round = 0;            
             Carta pCard;
             List<Carta> roundCards = new List<Carta>();
+            List<Player> playersMod = new List<Player>();
+            int mainSuit = r.Next(0, 4);
 
 
-            dealCards(players);
+
+            dealCards(players, baraja);
 
 
-            while (!ganador)
+            while (players.Count()>1)
             {
-                Console.WriteLine("");
+                Console.WriteLine("------------------------------------------------------------");
                 Console.WriteLine("RONDA " + round);
+                Console.WriteLine("PALO GANADOR DE ESTA PARTIDA: " + palos[mainSuit]);
                 foreach (Player p in players)
                 {
-                    if (!p.eliminado)
-                    {
-                        Console.WriteLine("");
-                        pCard = p.playCard();
-                        roundCards.Add(pCard);
-                        Console.WriteLine("Jugador " + p.numPlayer + " saca " + pCard.escribeCarta());   
-                    }
+                    Console.WriteLine("");
+                    pCard = p.playCard();
+                    roundCards.Add(pCard);
+                    Console.WriteLine("Jugador " + p.numPlayer + " saca " + pCard.escribeCarta());
                 }
 
-                checkRoundWinner(roundCards);
-                checkLosers();
+                checkRoundWinner(roundCards, mainSuit);
+                playersMod = checkLosers(players);
+                players = playersMod;
                 round++;
-                Console.WriteLine("Espacio para pasar a la siguiente ronda");
+                roundCards.Clear();
+                Console.WriteLine("Pulse espacio para pasar a la siguiente ronda");
                 Console.ReadKey();
-            }                
+            }
+            Console.WriteLine("*********************************************");
+            Console.WriteLine("HA GANADO EL JUGADOR "+players[0].numPlayer);
+            Console.WriteLine("*********************************************");
         }
 
-        static void checkRoundWinner(List<Carta> cards)
+        static void checkRoundWinner(List<Carta> cards, int mainSuit)
         {
             Carta temp = cards[0];
             Player winner;
+            Boolean tie = false;
             
             foreach (Carta c in cards)
             {
-               if (c.numero > temp.numero)
+
+                if (temp.palo == mainSuit && c.palo == mainSuit)
+                {
+                    if (c.numero > temp.numero)
+                    {
+                        temp = c;
+                        tie = false;
+                    }
+                        
+                } else if (c.palo == mainSuit && temp.palo != mainSuit)
                 {
                     temp = c;
-                }
+                    tie = false;
+                } else if (c.palo != mainSuit && temp.palo != mainSuit)
+                {
+                    if (c.numero > temp.numero)
+                    {
+                        temp = c;
+                        tie = false;
+                    }
+                    else if (c.numero == temp.numero)
+                        tie = true;
+                    else tie = false;
+                }               
+                              
             }
-            winner = temp.owner;
-
-            foreach (Carta c in cards)
+            if (!tie)
             {
-                winner.addCard(c);
+                winner = temp.owner;
+                foreach (Carta c in cards)
+                {
+                    winner.addCard(c);
+                }
+                Console.WriteLine(" ");
+                Console.WriteLine("EL GANADOR DE ESTA RONDA ES EL JUGADOR: " + winner.numPlayer);
+                Console.WriteLine(" ");
             }
+            else
+            {
+                foreach (Carta c in cards)
+                {
+                    c.owner.addCard(c);
+                }
+                Console.WriteLine(" ");
+                Console.WriteLine("EMPATE, SE DEVOLVERAN LAS CARTAS");
+                Console.WriteLine(" ");
+            }
+
+            
 
 
         }
 
-        static void dealCards(List<Player> players)
+        static void dealCards(List<Player> players, Baraja baraja)
         {
 
-            Baraja baraja = new Baraja();
+            
 
-            foreach (Player p in players)
+            while (baraja.numeroCartas() > 0)
             {
-                if (baraja.numeroCartas() > 0)
+                foreach (Player p in players)
                 {
-
                     baraja.giveCardToPlayer(p);
                 }
-                else break;
-                
-            }
+            }           
         }
 
 
-        static void checkLosers()
+        static List<Player> checkLosers(List<Player> players)
         {
-            
-            if (p1.mano.Count() == 0)
+            Player temp= new Player();
+            Boolean elimination = false;
+            foreach (Player p in players)
             {
-                p1.eliminado = true;
-                Console.WriteLine("PLAYER 1 ELIMINADO");
-            } else if (p2.mano.Count() == 0)
-            {
-                p2.eliminado = true;
-                Console.WriteLine("PLAYER 2 ELIMINADO");
+                if (p.mano.Count() == 0)
+                {
+                    Console.WriteLine("PLAYER "+p.numPlayer+" ELIMINADO");
+                    temp = p;
+                    elimination = true;
+                }else Console.WriteLine("A JUGADOR "+p.numPlayer+" LE QUEDAN "+ p.mano.Count());
             }
-            else if (p3.mano.Count() == 0)
-            {
-                p3.eliminado = true;
-                Console.WriteLine("PLAYER 3 ELIMINADO");
-            }
-            else if (p4.mano.Count() == 0)
-            {
-                p4.eliminado = true;
-                Console.WriteLine("PLAYER 4 ELIMINADO");
-            }
-            else if (p5.mano.Count() == 0)
-            {
-                p5.eliminado = true;
-                Console.WriteLine("PLAYER 5 ELIMINADO");
-            }
+            if (elimination)
+                players.Remove(temp);
+            return players;
         }
 
 
@@ -172,6 +205,7 @@ namespace Cartas
         }
         static void menu()
         {
+            Console.Clear();
             Console.WriteLine("Bienvenido al juego de cartas");
             Console.WriteLine("Pulse 1 para jugar 2 Jugadores");
             Console.WriteLine("Pulse 2 para jugar 3 Jugadores");
@@ -185,7 +219,7 @@ namespace Cartas
     {
         private int _numPlayer;
         private List<Carta> _mano = new List<Carta>();
-        private Boolean _eliminado = false;
+        
 
         public int numPlayer
         {
@@ -202,22 +236,16 @@ namespace Cartas
             }
             
         }
-        public Boolean eliminado
-        {
-            get
-            {
-                return _eliminado;
-            }
-            set
-            {
-                _eliminado = value;
-            }
-        }
+       
 
         public Player(int n)
         {
             _numPlayer = n;
             
+        }
+        public Player()
+        {          
+
         }
 
         public void addCard(Carta c)
@@ -242,8 +270,8 @@ namespace Cartas
     {
         private int _numero;
         private int _palo;
-        String[] palos = { "Oros", "Copas", "Espadas", "Bastos" };
         Player _owner;
+        String[] palos = { "Oros", "Copas", "Espadas", "Bastos" };
 
         public Carta(int n, int p)
         {
@@ -269,11 +297,18 @@ namespace Cartas
             }
            
         }
+        public int palo
+        {
+            get
+            {
+                return _palo;
+            }
+
+        }
 
         public String escribeCarta()
         {
-            String c = numero + " de " + palos[_palo];
-            return c;
+            return numero + " de " + palos[_palo];
         }
     }
     class Baraja
@@ -293,6 +328,7 @@ namespace Cartas
                 {
                     card = new Carta(j + 1, i);
                     orderedDeck.Add(card);
+                    Console.WriteLine("Añadido a baraja" + card.escribeCarta());
                 } 
             }
             // y aqui la desordenamos y guardamos
@@ -313,6 +349,7 @@ namespace Cartas
             c.owner = p;
             baraja.Remove(baraja[0]);
             p.addCard(c);
+            Console.WriteLine("Dada la carta "+c.escribeCarta()+" a "+c.owner);
         }
 
 
