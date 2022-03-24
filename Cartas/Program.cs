@@ -23,6 +23,8 @@ namespace Cartas
             List<Player> threePlayers = new List<Player>() { p1, p2, p3 };
             List<Player> fourPlayers = new List<Player>() { p1, p2, p3, p4 };
             List<Player> fivePlayers = new List<Player>() { p1, p2, p3, p4, p5 };
+
+            // elección gamemode
             int n = selectPlayers();
             if (n == 1) {
                 game(twoPlayers);
@@ -62,7 +64,7 @@ namespace Cartas
 
             dealCards(players, baraja);
 
-
+            // mientras que hay mas de un jugador en la lista jugadores el juego seguirá
             while (players.Count()>1)
             {
                 Console.WriteLine("------------------------------------------------------------");
@@ -70,19 +72,30 @@ namespace Cartas
                 Console.WriteLine("PALO GANADOR DE ESTA PARTIDA: " + palos[mainSuit]);
                 foreach (Player p in players)
                 {
+                    //cada jugador tira su carta
                     Console.WriteLine("");
                     pCard = p.playCard();
                     roundCards.Add(pCard);
                     Console.WriteLine("Jugador " + p.numPlayer + " saca " + pCard.escribeCarta());
                 }
 
+                
                 checkRoundWinner(roundCards, mainSuit);
                 playersMod = checkLosers(players);
                 players = playersMod;
                 round++;
                 roundCards.Clear();
+
+                if (round % 10 == 0)
+                {
+                    foreach (Player p in players)
+                    {
+                        p.shuffleHand();
+                    }
+                }
                 Console.WriteLine("Pulse espacio para pasar a la siguiente ronda");
                 Console.ReadKey();
+                
             }
             Console.WriteLine("*********************************************");
             Console.WriteLine("HA GANADO EL JUGADOR "+players[0].numPlayer);
@@ -94,6 +107,8 @@ namespace Cartas
             Carta temp = cards[0];
             Player winner;
             Boolean tie = false;
+
+            // sacamos la carta mayor teniendo en cuenta el palo ganador
             
             foreach (Carta c in cards)
             {
@@ -123,11 +138,13 @@ namespace Cartas
                 }               
                               
             }
+            // si le dan todas las cartas al ganador a no ser que hay un empate, entonces volveran a sus dueños
             if (!tie)
             {
                 winner = temp.owner;
                 foreach (Carta c in cards)
                 {
+                    c.owner = winner;
                     winner.addCard(c);
                 }
                 Console.WriteLine(" ");
@@ -152,7 +169,7 @@ namespace Cartas
 
         static void dealCards(List<Player> players, Baraja baraja)
         {
-
+            // repartimos las cartas de una baraja a todos los jugadores participantes
             
 
             while (baraja.numeroCartas() > 0)
@@ -167,6 +184,7 @@ namespace Cartas
 
         static List<Player> checkLosers(List<Player> players)
         {
+            // cada ronda contamos cuantas cartas le quedan a cada jugador y si se queda sin deja de participar
             Player temp= new Player();
             Boolean elimination = false;
             foreach (Player p in players)
@@ -220,7 +238,7 @@ namespace Cartas
         private int _numPlayer;
         private List<Carta> _mano = new List<Carta>();
         
-
+        // getters
         public int numPlayer
         {
             get
@@ -237,7 +255,7 @@ namespace Cartas
             
         }
        
-
+        // constructores
         public Player(int n)
         {
             _numPlayer = n;
@@ -248,6 +266,7 @@ namespace Cartas
 
         }
 
+        // metodos
         public void addCard(Carta c)
         {
             _mano.Add(c);
@@ -255,10 +274,29 @@ namespace Cartas
 
         public Carta playCard()
         {
+            // le quitamos la carta al jugarla
             Carta c = mano[0];
             mano.Remove(mano[0]);
             return c;
+        }
 
+        public void shuffleHand()
+        {
+            // mezclamos la mano del jugador
+            List<Carta> temp = new List<Carta>();
+           
+
+            var rnd = new Random();
+            var randomized = _mano.OrderBy(item => rnd.Next());
+            
+
+            foreach (var value in randomized)
+            {
+                Console.WriteLine("Añadida " + value.escribeCarta() + " a jugador " + _numPlayer);
+                temp.Add(value);
+            }
+            _mano = temp;
+            
         }
 
 
@@ -272,12 +310,14 @@ namespace Cartas
         private int _palo;
         Player _owner;
         String[] palos = { "Oros", "Copas", "Espadas", "Bastos" };
-
+        
+        //constructores
         public Carta(int n, int p)
         {
             _numero = n;
             _palo = p;
         }
+        // getters y setters
         public Player owner
         {
             get
@@ -306,6 +346,7 @@ namespace Cartas
 
         }
 
+        //metodos
         public String escribeCarta()
         {
             return numero + " de " + palos[_palo];
@@ -316,6 +357,7 @@ namespace Cartas
         List<Carta> baraja = new List<Carta>();
         Carta card;
 
+        // constructor
         public Baraja()
         {
             List<Carta> orderedDeck = new List<Carta>();
@@ -338,6 +380,7 @@ namespace Cartas
                 baraja.Add(value);
             }
         }
+        // metodos
         public int numeroCartas()
         {
             return baraja.Count();
@@ -345,11 +388,12 @@ namespace Cartas
 
         public void giveCardToPlayer(Player p)
         {
+            // restamos carta a la baraja y la damos a un jugador
             Carta c = baraja[0];
             c.owner = p;
             baraja.Remove(baraja[0]);
             p.addCard(c);
-            Console.WriteLine("Dada la carta "+c.escribeCarta()+" a "+c.owner);
+            Console.WriteLine("Dada la carta "+c.escribeCarta()+" a "+c.owner.numPlayer);
         }
 
 
